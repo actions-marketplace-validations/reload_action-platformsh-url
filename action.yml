@@ -113,7 +113,27 @@ runs:
 
         URL=$(platform env:url -1 --pipe)
 
-        CURL_HTTP_STATUS=$(curl -L -s -o /dev/null -w "%{http_code}" $URL)
+        MAX_CURL_TRIES=5
+        CURL_SLEEP_SECONDS=5
+        CURL_TRIES=0
+        CURL_HTTP_STATUS=000
+
+        while [ "$CURL_TRIES" -lt "$MAX_CURL_TRIES" ]; do
+          CURL_TRIES=$((CURL_TRIES+1))
+
+          CURL_HTTP_STATUS=$(curl -L -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
+
+          echo "cURL attempt $CURL_TRIES/$MAX_CURL_TRIES returned HTTP $CURL_HTTP_STATUS"
+
+          if [[ "$CURL_HTTP_STATUS" == "200" ]]; then
+            break
+          fi
+
+          if [ "$CURL_TRIES" -lt "$MAX_CURL_TRIES" ]; then
+            echo "Waiting $CURL_SLEEP_SECONDS seconds before retrying CURL..."
+            sleep "$CURL_SLEEP_SECONDS"
+          fi
+        done
 
         if [[ "$CURL_HTTP_STATUS" != "200" ]]; then \
           echo "PlatformSH reports the environment is ready, but cURL could not connect to it. You may have pushed a broken build."; \
