@@ -61,7 +61,8 @@ runs:
         export PLATFORM_BRANCH=${{ inputs.ENVIRONMENT_NAME }};
         export PLATFORMSH_CLI_TOKEN=${{ inputs.PLATFORMSH_KEY }};
 
-        curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | bash
+        curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | VENDOR=upsun bash
+
         export PATH="/home/runner/.local/bin:{$PATH}"
 
         if [[ "${{ inputs.ALLOW_CANCEL_CRON }}" == 1 ]]; then \
