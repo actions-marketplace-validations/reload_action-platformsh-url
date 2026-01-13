@@ -56,16 +56,17 @@ runs:
 
         sleep 5s
 
-        export PLATFORMSH_CLI_NO_INTERACTION=1;
+        export UPSUN_CLI_NO_INTERACTION=1;
+        export UPSUN_CLI_TOKEN=${{ inputs.PLATFORMSH_KEY }};
         export PLATFORM_PROJECT=${{ inputs.PLATFORMSH_ID }};
         export PLATFORM_BRANCH=${{ inputs.ENVIRONMENT_NAME }};
-        export PLATFORMSH_CLI_TOKEN=${{ inputs.PLATFORMSH_KEY }};
 
-        curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | bash
+        curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | VENDOR=upsun bash
+
         export PATH="/home/runner/.local/bin:{$PATH}"
 
         if [[ "${{ inputs.ALLOW_CANCEL_CRON }}" == 1 ]]; then \
-            platform activity:cancel --type=environment.cron; \
+            upsun activity:cancel --type=environment.cron; \
         fi
 
         DETECTION_TRIES=0
@@ -81,13 +82,13 @@ runs:
         MAX_TRIES=$(( MAX_WAIT_SECONDS / DELAY_BETWEEN_ATTEMPTS ));
 
         echo "We will now detect the PSH activities. You can view the deployment log using";
-        echo "  platform activity:log [ID] -p ${{ inputs.PLATFORMSH_ID }} -e ${{ inputs.ENVIRONMENT_NAME }}";
+        echo "  upsun activity:log [ID] -p ${{ inputs.PLATFORMSH_ID }} -e ${{ inputs.ENVIRONMENT_NAME }}";
         echo "----------------------";
         echo "";
 
         while [ $TRIES -le $MAX_TRIES ]; do \
           TRIES=$((TRIES+1)); \
-          ACTS=$(platform activities --format=plain --columns=id,state --incomplete --no-header --no-interaction --type=${{ inputs.ACTIVITY_TYPES }} 2>&1 || true); \
+          ACTS=$(upsun activities --format=plain --columns=id,state --incomplete --no-header --no-interaction --type=${{ inputs.ACTIVITY_TYPES }} 2>&1 || true); \
 
           echo "$ACTS"; \
           echo "----------------------"; \
@@ -101,17 +102,17 @@ runs:
 
         echo ""
 
-        STATUS=$(platform env:info status 2>&1 || true)
+        STATUS=$(upsun env:info status 2>&1 || true)
 
         if [[ "$STATUS" =~ "inactive" ]]; then \
-          echo "PlatformSH reports that the environment is not active. This might be because you have run out of available environment slots. Try to run 'platform env:activate -e ${{ inputs.ENVIRONMENT_NAME }} -p ${{ inputs.PLATFORMSH_ID }}'"; \
+          echo "PlatformSH reports that the environment is not active. This might be because you have run out of available environment slots. Try to run 'upsun env:activate -e ${{ inputs.ENVIRONMENT_NAME }} -p ${{ inputs.PLATFORMSH_ID }}'"; \
           exit 2; \
         elif [[ "$SUCCESS" == 0 ]]; then \
           echo "$STATUS"; \
           exit 2; \
         fi
 
-        URL=$(platform env:url -1 --pipe)
+        URL=$(upsun env:url -1 --pipe)
 
         MAX_CURL_TRIES=5
         CURL_SLEEP_SECONDS=5
