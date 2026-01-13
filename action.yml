@@ -57,9 +57,9 @@ runs:
         sleep 5s
 
         export UPSUN_CLI_NO_INTERACTION=1;
-        export UPSUN_PROJECT=${{ inputs.PLATFORMSH_ID }};
-        export UPSUN_BRANCH=${{ inputs.ENVIRONMENT_NAME }};
         export UPSUN_CLI_TOKEN=${{ inputs.PLATFORMSH_KEY }};
+        export PLATFORM_PROJECT=${{ inputs.PLATFORMSH_ID }};
+        export PLATFORM_BRANCH=${{ inputs.ENVIRONMENT_NAME }};
 
         curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | VENDOR=upsun bash
 
